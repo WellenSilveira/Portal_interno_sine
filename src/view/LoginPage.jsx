@@ -1,23 +1,51 @@
 import { useState } from 'react'
-import { User, Lock, Mail, Eye, EyeOff } from 'lucide-react'
+import { User, Lock, IdCard, Eye, EyeOff } from 'lucide-react'
 import './LoginPage.css'
 
 export default function LoginSignup() {
   const [activeTab, setActiveTab] = useState('login')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [loginEmail, setLoginEmail] = useState('')
+  const [loginCpf, setLoginCpf] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
+  const [signupCpf, setSignupCpf] = useState('')
   const [adminMode, setAdminMode] = useState(false)
 
-  const ADMIN_EMAIL = 'admin@portal.com'
+  const ADMIN_CPF = '12345678901'
   const ADMIN_PASSWORD = 'Admin123!'
+
+  // Formata CPF com máscara
+  const formatCPF = (value) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d{1,2})/, '$1-$2')
+      .substring(0, 14)
+  }
+
+  // Remove máscara do CPF
+  const unformatCPF = (value) => {
+    return value.replace(/\D/g, '')
+  }
+
+  // Valida CPF
+  const isValidCPF = (cpf) => {
+    const cleanCpf = unformatCPF(cpf)
+    return cleanCpf.length === 11 && /^\d{11}$/.test(cleanCpf)
+  }
+
+  const handleCpfChange = (value, setCpf) => {
+    setCpf(formatCPF(value))
+    setAdminMode(false)
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault()
 
     if (activeTab === 'login' && adminMode) {
-      if (loginEmail === ADMIN_EMAIL && loginPassword === ADMIN_PASSWORD) {
+      const cleanCpf = unformatCPF(loginCpf)
+      if (cleanCpf === ADMIN_CPF && loginPassword === ADMIN_PASSWORD) {
         alert('Admin logado com sucesso!')
       } else {
         alert('Credenciais admin incorretas.')
@@ -26,16 +54,24 @@ export default function LoginSignup() {
     }
 
     if (activeTab === 'login') {
-      alert('Login feito com: ' + loginEmail)
+      if (!isValidCPF(loginCpf)) {
+        alert('CPF inválido. Digite um CPF válido com 11 dígitos.')
+        return
+      }
+      alert('Login feito com CPF: ' + loginCpf)
     } else {
-      alert('Cadastro concluído!')
+      if (!isValidCPF(signupCpf)) {
+        alert('CPF inválido. Digite um CPF válido com 11 dígitos.')
+        return
+      }
+      alert('Cadastro concluído com CPF: ' + signupCpf)
     }
   }
 
   const handleAdminLogin = () => {
     setActiveTab('login')
     setAdminMode(true)
-    setLoginEmail('')
+    setLoginCpf('')
     setLoginPassword('')
   }
 
@@ -43,7 +79,7 @@ export default function LoginSignup() {
     setActiveTab(tab)
     setAdminMode(false)
     if (tab !== 'login') {
-      setLoginEmail('')
+      setLoginCpf('')
       setLoginPassword('')
     }
   }
@@ -84,17 +120,15 @@ export default function LoginSignup() {
                 </div>
               )}
               <div className="form-group">
-                <label>Email</label>
+                <label>CPF</label>
                 <div className="input-group">
-                  <Mail className="input-icon" />
+                  <IdCard className="input-icon" />
                   <input
-                    type="email"
-                    value={loginEmail}
-                    onChange={(e) => {
-                      setLoginEmail(e.target.value)
-                      setAdminMode(false)
-                    }}
-                    placeholder="seu@email.com"
+                    type="text"
+                    value={loginCpf}
+                    onChange={(e) => handleCpfChange(e.target.value, setLoginCpf)}
+                    placeholder="000.000.000-00"
+                    maxLength="14"
                   />
                 </div>
               </div>
@@ -147,10 +181,16 @@ export default function LoginSignup() {
               </div>
 
               <div className="form-group">
-                <label>Email</label>
+                <label>CPF</label>
                 <div className="input-group">
-                  <Mail className="input-icon" />
-                  <input type="email" placeholder="seu@email.com" />
+                  <IdCard className="input-icon" />
+                  <input
+                    type="text"
+                    value={signupCpf}
+                    onChange={(e) => handleCpfChange(e.target.value, setSignupCpf)}
+                    placeholder="000.000.000-00"
+                    maxLength="14"
+                  />
                 </div>
               </div>
 
