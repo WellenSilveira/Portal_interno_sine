@@ -37,7 +37,6 @@ export default function LoginSignup() {
 
   const handleCpfChange = (value, setCpf) => {
     setCpf(formatCPF(value))
-    setAdminMode(false)
   }
 
   const handleSubmit = (e) => {
@@ -142,7 +141,6 @@ export default function LoginSignup() {
                     value={loginPassword}
                     onChange={(e) => {
                       setLoginPassword(e.target.value)
-                      setAdminMode(false)
                     }}
                     placeholder="••••••••"
                   />
