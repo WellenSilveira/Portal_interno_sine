@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { User, Lock, IdCard, Eye, EyeOff } from 'lucide-react'
 import './LoginPage.css'
+import Input from '@/components/Input'
+import Button from '@/components/Button'
+import PasswordInput from '@/components/PasswordInput'
 
 export default function LoginSignup() {
   const [activeTab, setActiveTab] = useState('login')
