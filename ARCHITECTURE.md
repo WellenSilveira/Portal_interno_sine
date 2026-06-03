@@ -1,238 +1,97 @@
-# Portal Interno SINE - Documentação da Arquitetura
+# Documentação de Arquitetura - Portal Interno SINE
 
-## 📋 Visão Geral
+## Visão Geral do Sistema
 
-Projeto estruturado em componentes reutilizáveis com autenticação JWT segura e proteção de dados pessoais.
+O Portal Interno SINE é uma aplicação SPA (Single Page Application) desenvolvida sobre o ecossistema Vite e React. A arquitetura foi desenhada para priorizar a modularidade de componentes de interface, centralização de serviços de rede e conformidade rigorosa com boas práticas de segurança no manejo de dados cadastrais sensíveis.
 
-## 🏗️ Estrutura do Projeto
+---
 
-```
-src/
-├── components/              # Componentes reutilizáveis
-│   ├── Input/              # Input genérico com validação
-│   ├── Button/             # Botão com variantes
-│   ├── Card/               # Container de conteúdo
-│   ├── Tabs/               # Sistema de abas
-│   └── PasswordInput/       # Input de senha com toggle
-├── services/
-│   └── apiService.js       # Serviço de chamadas à API
-├── utils/
-│   ├── cpfValidator.js     # Validação e formatação de CPF
-│   ├── tokenManager.js     # Gerenciamento de JWT
-│   └── validators.js       # Validadores gerais (email, senha)
-├── view/
-│   ├── LoginPage.jsx       # Versão original
-│   └── LoginPageV2.jsx     # Nova versão com componentes
-└── style/
-    └── globals.css         # Estilos globais
-```
+## Estrutura Atual do Projeto
 
-## 🔐 Segurança e Privacidade
-
-### Dados Sensíveis
-- **CPF do usuário**: Validado no backend, nunca armazenado no frontend
-- **Dados pessoais**: Armazenados apenas no banco de dados seguro, criptografados
-- **Senhas**: Hash bcrypt no backend, nunca transmitidas em plain text
-- **Token JWT**: Armazenado em localStorage com expiração
-
-### Controle de Acesso
-- Admin NUNCA tem acesso aos dados pessoais dos usuários
-- Cada usuário só acessa seus próprios dados
-- Token JWT valida cada requisição
-
-## 📦 Componentes Reutilizáveis
-
-### Input
-```jsx
-<Input
-  label="CPF"
-  placeholder="000.000.000-00"
-  icon={IdCard}
-  value={cpf}
-  onChange={(e) => setCpf(e.target.value)}
-  error={errors.cpf}
-/>
-```
-
-### Button
-```jsx
-<Button
-  variant="primary" | "secondary" | "ghost"
-  size="small" | "medium" | "large"
-  loading={isLoading}
-  disabled={isDisabled}
-  onClick={handleClick}
->
-  Texto do botão
-</Button>
-```
-
-### PasswordInput
-```jsx
-<PasswordInput
-  label="Senha"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)}
-  error={errors.password}
-/>
-```
-
-### Card
-```jsx
-<Card>
-  Conteúdo do card
-</Card>
-```
-
-### Tabs
-```jsx
-<Tabs
-  activeTab={activeTab}
-  setActiveTab={setActiveTab}
-  tabs={[
-    { id: 'login', label: 'Login', content: <LoginForm /> },
-    { id: 'signup', label: 'Cadastro', content: <SignupForm /> },
-  ]}
-/>
-```
-
-## 🔌 API Service
-
-### Métodos Disponíveis
-
-```javascript
-// Autenticação
-apiService.login(cpf, password)
-apiService.register(cpf, email, password)
-apiService.logout()
-
-// Usuário
-apiService.fetchUserDataByCPF(cpf)      // Busca dados do CPF
-apiService.getCurrentUser()              // Obtém dados do usuário logado
-apiService.updateUserData(userData)      // Atualiza dados do usuário
-
-// Vagas/Candidaturas (exemplos)
-apiService.getJobs()
-apiService.applyForJob(jobId, data)
-apiService.getUserApplications()
-```
-
-## 🛠️ Utilities
-
-### CPF Validator
-```javascript
-import { formatCPF, unformatCPF, isValidCPF } from '@/utils/cpfValidator'
-
-const formatted = formatCPF('12345678901')  // "123.456.789-01"
-const clean = unformatCPF('123.456.789-01') // "12345678901"
-const valid = isValidCPF('123.456.789-01')  // true/false
-```
-
-### Token Manager
-```javascript
-import { saveToken, getToken, removeToken, decodeToken } from '@/utils/tokenManager'
-
-saveToken(token)
-const token = getToken()
-removeToken()
-const decoded = decodeToken(token)
-```
-
-### Validators
-```javascript
-import { validatePassword, validateEmail } from '@/utils/validators'
-
-const pwd = validatePassword('Senha123!')
-// { isValid: true, errors: [] }
-
-const email = validateEmail('user@example.com') // true/false
-```
-
-## 🔄 Fluxo de Autenticação
-
-### 1. Cadastro
-1. Usuário insere CPF
-2. Backend valida CPF contra banco de dados do governo
-3. Dados do usuário são buscados (nome, email)
-4. Usuário confirma email e cria senha
-5. Dados são armazenados no banco com criptografia
-
-### 2. Login
-1. Usuário insere CPF e senha
-2. Backend valida credenciais
-3. JWT é gerado com prazo de expiração (ex: 24h)
-4. Token é armazenado no localStorage
-5. Headers de requisição incluem o token
-
-### 3. Requisições Autenticadas
-Cada requisição inclui:
-```
-Authorization: Bearer {token}
-```
-
-Backend valida o token e retorna erro 401 se inválido.
-
-## 🚀 Como Usar a Nova LoginPage
-
-### No App.jsx
-```jsx
-import LoginPageV2 from './view/LoginPageV2'
-
-export default function App() {
-  return <LoginPageV2 />
-}
-```
-
-## 📝 Variáveis de Ambiente
-
-Crie um arquivo `.env` na raiz do projeto:
-```
-VITE_API_URL=http://localhost:3001/api
-```
-
-## ✅ Requisitos de Senha
-
-- Mínimo 8 caracteres
-- Pelo menos 1 letra maiúscula
-- Pelo menos 1 letra minúscula
-- Pelo menos 1 número
-- Pelo menos 1 caractere especial (!@#$%^&*)
-
-## 🔗 Backend Necessário
-
-O frontend espera um backend com os seguintes endpoints:
+Mapeamento completo do diretório do projeto seguindo a árvore real de arquivos da aplicação:
 
 ```
-POST   /api/auth/login
-POST   /api/auth/register
-POST   /api/auth/logout
-POST   /api/users/cpf-lookup
-GET    /api/users/me
-PUT    /api/users/me
-GET    /api/jobs
-POST   /api/jobs/:id/apply
-GET    /api/applications/me
-```
-
-Ver documentação de backend em [Backend Setup](#backend-setup).
-
-## 🐛 Troubleshooting
-
-### Token expirado?
-O ApiService detecta automaticamente e solicita novo login.
-
-### CPF inválido?
-Use a função `isValidCPF()` para validar antes de enviar.
-
-### CORS error?
-Configure CORS no backend:
-```javascript
-app.use(cors({
-  origin: 'http://localhost:5173',
-  credentials: true
-}))
+PORTAL_INTERNO_SINE/
+├── .github/                 # Workflows de CI/CD e automações do repositório
+├── dist/                    # Artefatos compilados para produção (Build final)
+├── node_modules/            # Dependências de terceiros gerenciadas via npm
+├── src/                     # Código-fonte principal da aplicação
+│   ├── components/          # Biblioteca interna de componentes modulares
+│   │   ├── Button/          # Botão dinâmico com tratamento de variantes e estados
+│   │   ├── Card/            # Container estrutural para agrupamento de blocos
+│   │   ├── Checkbox/        # Componente de seleção binária de estado
+│   │   ├── Input/           # Campo de texto genérico com tratamento de erros
+│   │   ├── PasswordInput/   # Entrada de senha com alternador de visibilidade nativo
+│   │   └── Tabs/            # Alternador de contexto em abas de navegação
+│   ├── services/
+│   │   └── apiService.js    # Camada centralizadora de consumo e interceptação de APIs HTTP
+│   ├── style/
+│   │   └── globals.css      # Folha de estilos globais e configurações do Tailwind
+│   ├── utils/
+│   │   ├── cpfValidator.js  # Utilitários de higienização, formatação e checksum de CPF
+│   │   ├── tokenManager.js  # Abstração para persistência e verificação de tokens JWT
+│   │   └── validators.js    # Validadores de regras de complexidade de e-mail e senha
+│   ├── view/                # Páginas de escopo de rotas da aplicação (ex: Login, Cadastro)
+│   ├── App.jsx              # Componente estrutural raiz do ecossistema React
+│   └── main.jsx             # Ponto de entrada de renderização do Virtual DOM
+├── .env                     # Definição local de variáveis de ambiente (Ignorado no Git)
+├── .env.example             # Modelo de distribuição para configuração de ambiente
+├── .gitignore               # Configurações de exclusão do controle de versão
+├── AGENTS.md                # Documentação técnica focada em agentes do ecossistema
+├── ARCHITECTURE.md          # Esta documentação de especificação de arquitetura
+├── COMPONENTS_GUIDE.md      # Manual técnico de uso da biblioteca de componentes
+├── index.html               # Arquivo HTML principal e casca de montagem da SPA
+├── package-lock.json        # Árvore de resolução exata das dependências do ecossistema
+├── package.json             # Manifest do projeto, scripts e controle de versões de pacotes
+└── vite.config.js           # Arquivo de configuração de build e plugins do bundler Vite
 ```
 
 ---
 
-**Desenvolvido com segurança em primeiro lugar** 🔒
+## Diretrizes de Segurança e Privacidade
+
+### Proteção de Dados Pessoais (LGPD)
+* **CPF do Usuário:** Para mitigar riscos de vazamento de dados, o CPF nunca é mantido em estado persistente no ecossistema do navegador (`localStorage` ou `sessionStorage`). O dado reside estritamente em memória volátil durante a submissão de formulários.
+* **Segurança de Credenciais:** Senhas de usuários em texto limpo não são trafegadas ou armazenadas; as rotas de envio operam estritamente sob criptografia de transporte TLS/HTTPS.
+
+### Modelo de Autenticação JWT
+* O armazenamento do token JWT de sessão é gerenciado pelo módulo `tokenManager.js` na camada de `localStorage`.
+* Requisições autenticadas anexam automaticamente o token sob o formato padrão da indústria:
+```http
+Authorization: Bearer {token}
+```
+
+---
+
+## Biblioteca de Componentes de Interface
+
+Abaixo constam as abstrações mínimas para o reuso de componentes estruturados em `src/components/`:
+
+* **Input:** Coleta de dados com suporte a máscaras visuais, estados dinâmicos de erro e injeção de ícones vetoriais.
+* **Button:** Acionador de eventos parametrizável por variantes (`primary`, `secondary`, `ghost`), tamanhos (`small`, `medium`, `large`) e indicador síncrono de carregamento (`loading`).
+* **PasswordInput:** Encapsula o estado local de visibilidade e regras de legibilidade de caracteres da senha.
+* **Checkbox:** Utilizado para captura de consentimentos, termos de uso e validações binárias.
+* **Card & Tabs:** Componentes de alto nível focados no particionamento visual de formulários de autenticação.
+
+---
+
+## Contrato de Integração com o Backend
+
+O frontend consome uma arquitetura RESTful que expõe os seguintes serviços essenciais:
+
+| Método | Endpoint da API | Contexto do Serviço |
+| :--- | :--- | :--- |
+| `POST` | `/api/auth/login` | Autenticação do trabalhador e devolução de token JWT. |
+| `POST` | `/api/auth/register` | Registro cadastral de novas credenciais. |
+| `POST` | `/api/auth/logout` | Encerramento e invalidação de sessão ativa. |
+| `POST` | `/api/users/cpf-lookup` | Validação de restrições ou duplicidade cadastral de CPF. |
+| `GET` | `/api/users/me` | Coleta de dados do perfil do usuário em sessão. |
+| `GET` | `/api/jobs` | Consulta de vagas ativas integradas ao SINE. |
+
+---
+
+## Política de Governança de Código
+
+1. **Validação Redundante:** Validações de máscara e formato feitas no frontend têm propósito exclusivo de melhorar a experiência do usuário (UX). É obrigatório que o backend processe a validação lógica final de todas as entradas.
+2. **Ciclo de Vida do Token:** Qualquer reposta HTTP com status `401 Unauthorized` mapeada pelo `apiService.js` deve disparar a limpeza de cache via `removeToken()` e forçar o redirecionamento imediato do usuário para a página de login.
+3. **Gerenciamento de Variáveis:** Configurações de chaves de API e URLs de microsserviços devem ser resolvidas dinamicamente via objeto `import.meta.env.VITE_API_URL` abstraído no arquivo `.env`.

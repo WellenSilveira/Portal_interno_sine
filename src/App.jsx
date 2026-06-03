@@ -1,5 +1,10 @@
-import LoginSignup from './view/LoginPage'
+import { AuthProvider } from '@/contexts/AuthContext'
+import LoginSignup from '@/view/LoginPage'
 
 export default function App() {
-  return <LoginSignup />
+  return (
+    <AuthProvider>
+      <LoginSignup />
+    </AuthProvider>
+  )
 }

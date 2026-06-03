@@ -1,15 +1,14 @@
 import { useState } from 'react'
-import { User, Lock, IdCard, Eye, EyeOff } from 'lucide-react'
-import './LoginPage.css'
+import { Mail, Lock, Building2, Phone, Eye, EyeOff } from 'lucide-react'
+import './RecruiterLoginPage.css'
 import Input from '@/components/Input'
 import Button from '@/components/Button'
 import PasswordInput from '@/components/PasswordInput'
 import { useAuth } from '@/contexts/AuthContext'
 import apiService, { ApiError } from '@/services/apiService'
-import { formatCPF, unformatCPF, isValidCPF } from '@/utils/cpfValidator'
-import { validatePassword } from '@/utils/validators'
+import { validateEmail, validatePassword } from '@/utils/validators'
 
-export default function LoginSignup() {
+export default function RecruiterLoginSignup() {
   const { login } = useAuth()
 
   const [activeTab, setActiveTab] = useState('login')
@@ -18,20 +17,31 @@ export default function LoginSignup() {
   const [loading, setLoading] = useState(false)
 
   // Login state
-  const [loginCpf, setLoginCpf] = useState('')
+  const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginError, setLoginError] = useState('')
 
   // Signup state
-  const [signupCpf, setSignupCpf] = useState('')
+  const [signupEmail, setSignupEmail] = useState('')
+  const [signupCompanyName, setSignupCompanyName] = useState('')
+  const [signupCompanyPhone, setSignupCompanyPhone] = useState('')
   const [signupFullName, setSignupFullName] = useState('')
   const [signupPassword, setSignupPassword] = useState('')
   const [signupConfirmPassword, setSignupConfirmPassword] = useState('')
   const [signupError, setSignupError] = useState('')
   const [signupTerms, setSignupTerms] = useState(false)
 
-  const handleCpfChange = (value, setCpf) => {
-    setCpf(formatCPF(value))
+  // Format phone
+  const formatPhone = (value) => {
+    return value
+      .replace(/\D/g, '')
+      .replace(/(\d{2})(\d)/, '($1) $2')
+      .replace(/(\d{4})(\d)/, '$1-$2')
+      .substring(0, 14)
+  }
+
+  const handlePhoneChange = (value, setPhone) => {
+    setPhone(formatPhone(value))
   }
 
   const handleLoginSubmit = async (e) => {
@@ -40,8 +50,8 @@ export default function LoginSignup() {
     setLoading(true)
 
     try {
-      if (!isValidCPF(loginCpf)) {
-        setLoginError('CPF inválido. Digite um CPF válido com 11 dígitos.')
+      if (!validateEmail(loginEmail)) {
+        setLoginError('Email inválido.')
         setLoading(false)
         return
       }
@@ -52,13 +62,8 @@ export default function LoginSignup() {
         return
       }
 
-      const cleanCpf = unformatCPF(loginCpf)
-      const response = await apiService.login(cleanCpf, loginPassword)
-
-      // Salva dados do usuário no contexto
+      const response = await apiService.recruiterLogin(loginEmail, loginPassword)
       login(response.token, response.user)
-
-      // Redireciona para dashboard (quando implementado)
       alert('Login realizado com sucesso!')
     } catch (error) {
       if (error instanceof ApiError) {
@@ -83,8 +88,14 @@ export default function LoginSignup() {
         return
       }
 
-      if (!isValidCPF(signupCpf)) {
-        setSignupError('CPF inválido. Digite um CPF válido com 11 dígitos.')
+      if (!validateEmail(signupEmail)) {
+        setSignupError('Email inválido.')
+        setLoading(false)
+        return
+      }
+
+      if (!signupCompanyName.trim()) {
+        setSignupError('Nome da empresa é obrigatório.')
         setLoading(false)
         return
       }
@@ -108,13 +119,14 @@ export default function LoginSignup() {
         return
       }
 
-      const cleanCpf = unformatCPF(signupCpf)
-      const response = await apiService.register(cleanCpf, signupPassword)
+      const response = await apiService.recruiterRegister(
+        signupEmail,
+        signupCompanyName,
+        signupFullName,
+        signupPassword
+      )
 
-      // Auto-login após cadastro
       login(response.token, response.user)
-
-      // Redireciona para dashboard
       alert('Cadastro realizado com sucesso!')
     } catch (error) {
       if (error instanceof ApiError) {
@@ -131,9 +143,11 @@ export default function LoginSignup() {
     setActiveTab(tab)
     setLoginError('')
     setSignupError('')
-    setLoginCpf('')
+    setLoginEmail('')
     setLoginPassword('')
-    setSignupCpf('')
+    setSignupEmail('')
+    setSignupCompanyName('')
+    setSignupCompanyPhone('')
     setSignupFullName('')
     setSignupPassword('')
     setSignupConfirmPassword('')
@@ -141,16 +155,16 @@ export default function LoginSignup() {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
-        <div className="login-card__header">
+    <div className="recruiter-login-page">
+      <div className="recruiter-login-card">
+        <div className="recruiter-login-card__header">
           <div>
-            <h1>Portal do Trabalhador</h1>
-            <p>Bem-vindo de volta!</p>
+            <h1>Portal do Recrutador</h1>
+            <p>Gerencie vagas e candidatos</p>
           </div>
         </div>
 
-        <div className="login-card__tabs">
+        <div className="recruiter-login-card__tabs">
           <button
             type="button"
             className={`tab-btn ${activeTab === 'login' ? 'active' : ''}`}
@@ -167,21 +181,20 @@ export default function LoginSignup() {
           </button>
         </div>
 
-        <div className="login-card__body">
+        <div className="recruiter-login-card__body">
           {activeTab === 'login' ? (
             <form onSubmit={handleLoginSubmit} className="form-grid">
               {loginError && <div className="form-error-message">{loginError}</div>}
 
               <div className="form-group">
-                <label>CPF</label>
+                <label>Email</label>
                 <div className="input-group">
-                  <IdCard className="input-icon" />
+                  <Mail className="input-icon" />
                   <input
-                    type="text"
-                    value={loginCpf}
-                    onChange={(e) => handleCpfChange(e.target.value, setLoginCpf)}
-                    placeholder="000.000.000-00"
-                    maxLength="14"
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    placeholder="seu.email@empresa.com"
                     disabled={loading}
                   />
                 </div>
@@ -234,7 +247,7 @@ export default function LoginSignup() {
               <div className="form-group">
                 <label>Nome Completo</label>
                 <div className="input-group">
-                  <User className="input-icon" />
+                  <Mail className="input-icon" />
                   <input
                     type="text"
                     value={signupFullName}
@@ -246,14 +259,42 @@ export default function LoginSignup() {
               </div>
 
               <div className="form-group">
-                <label>CPF</label>
+                <label>Email</label>
                 <div className="input-group">
-                  <IdCard className="input-icon" />
+                  <Mail className="input-icon" />
+                  <input
+                    type="email"
+                    value={signupEmail}
+                    onChange={(e) => setSignupEmail(e.target.value)}
+                    placeholder="seu.email@empresa.com"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Nome da Empresa</label>
+                <div className="input-group">
+                  <Building2 className="input-icon" />
                   <input
                     type="text"
-                    value={signupCpf}
-                    onChange={(e) => handleCpfChange(e.target.value, setSignupCpf)}
-                    placeholder="000.000.000-00"
+                    value={signupCompanyName}
+                    onChange={(e) => setSignupCompanyName(e.target.value)}
+                    placeholder="Nome da sua empresa"
+                    disabled={loading}
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Telefone da Empresa</label>
+                <div className="input-group">
+                  <Phone className="input-icon" />
+                  <input
+                    type="text"
+                    value={signupCompanyPhone}
+                    onChange={(e) => handlePhoneChange(e.target.value, setSignupCompanyPhone)}
+                    placeholder="(00) 0000-0000"
                     maxLength="14"
                     disabled={loading}
                   />
@@ -311,9 +352,7 @@ export default function LoginSignup() {
                   onChange={(e) => setSignupTerms(e.target.checked)}
                   disabled={loading}
                 />
-                <span>
-                  Eu aceito os termos de uso e política de privacidade
-                </span>
+                <span>Eu aceito os termos de uso e política de privacidade</span>
               </label>
 
               <button
@@ -327,7 +366,7 @@ export default function LoginSignup() {
           )}
         </div>
 
-        <div className="login-card__footer">
+        <div className="recruiter-login-card__footer">
           <p>
             {activeTab === 'login' ? 'Não tem uma conta?' : 'Já tem uma conta?'}{' '}
             <button
@@ -339,14 +378,9 @@ export default function LoginSignup() {
               {activeTab === 'login' ? 'Cadastre-se' : 'Faça login'}
             </button>
           </p>
-          <button
-            type="button"
-            className="footer-admin-login-btn"
-            onClick={() => alert('Navegação para login de recrutador - implementar roteamento')}
-            disabled={loading}
-          >
-            Sou Recrutador
-          </button>
+          <a href="#" className="footer-link">
+            Voltar para login de trabalhador
+          </a>
         </div>
       </div>
     </div>
